@@ -28,7 +28,7 @@ public class UsersService {
 	public void save(Users user) {
 		usersRepository.save(user);
 	}
-	
+
 	public void delete(Users user) {
 		usersRepository.delete(user);
 	}
@@ -38,10 +38,30 @@ public class UsersService {
 	}
 
 	public ResponseEntity<?> storeUserDetail(@Valid UserCreateRequest createRequest) {
-		Users user = new Users(createRequest.getUserId(), createRequest.getSchoolId(), createRequest.getUsername(),
-				createRequest.getToken());
-		insert(user);
-		return ResponseEntity.ok(new MessageResponse("Users Details Stored Successfully!"));
+		Optional<Users> exitUser = findByUserId(createRequest.getUserId());
+		if (exitUser.isPresent()) {
+			Users user = exitUser.get();
+
+			if (createRequest.getUserId().trim().length() > 0) {
+				user.setUserId(createRequest.getUserId());
+			}
+			if (createRequest.getSchoolId().trim().length() > 0) {
+				user.setSchoolId(createRequest.getSchoolId());
+			}
+			if (createRequest.getUsername().trim().length() > 0) {
+				user.setUsername(createRequest.getUsername());
+			}
+			if (createRequest.getToken().trim().length() > 0) {
+				user.setToken(createRequest.getToken());
+			}
+			save(user);
+			return ResponseEntity.ok(new MessageResponse("Users Details Updated Successfully!"));
+		} else {
+			Users user = new Users(createRequest.getUserId(), createRequest.getSchoolId(), createRequest.getUsername(),
+					createRequest.getToken());
+			insert(user);
+			return ResponseEntity.ok(new MessageResponse("Users Details Stored Successfully!"));
+		}
 	}
 
 	public ResponseEntity<?> updateUserDetail(@Valid UpdateUserRequest updateRequest) {
@@ -78,7 +98,7 @@ public class UsersService {
 			return ResponseEntity.badRequest().body(new MessageResponse("User Details Not Found!"));
 		}
 	}
-	
+
 	public ResponseEntity<?> deleteUserByUserId(String id) {
 		Optional<Users> exitUser = findByUserId(id);
 		if (exitUser.isPresent()) {
@@ -92,6 +112,5 @@ public class UsersService {
 	public List<Users> findAllUsers() {
 		return usersRepository.findAll();
 	}
-	
 
 }
